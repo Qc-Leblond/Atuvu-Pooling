@@ -64,6 +64,7 @@ namespace Atuvu.Pooling
         int m_Capacity;
 
         public int capacity { get { return m_Capacity;} }
+        internal int availableCount { get { return m_Available.Count;} }
 
         public void Initialize()
         {
@@ -84,10 +85,7 @@ namespace Atuvu.Pooling
             m_PoolRoot = PoolManager.CreatePoolRoot(name);
             m_Capacity = 0;
 
-            for (int i = 0; i < m_DefaultSize; ++i)
-            {
-                AddNewObject();
-            }
+            EnsureCapacity(m_DefaultSize);
         }
 
         public GameObject Pop()
@@ -177,6 +175,14 @@ namespace Atuvu.Pooling
             node.transform.localPosition = Vector3.zero;
             node.transform.localRotation = Quaternion.identity;
             ResetScale(node);
+        }
+
+        public void EnsureCapacity(int capacity)
+        {
+            for (int i = 0; i < capacity - m_Capacity; ++i)
+            {
+                AddNewObject();
+            }
         }
 
         void AddNewObject()
