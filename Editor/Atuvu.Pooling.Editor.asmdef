@@ -1,0 +1,16 @@
+{
+    "name": "Atuvu.Pooling.Editor",
+    "references": [
+        "Atuvu.Pooling"
+    ],
+    "optionalUnityReferences": [],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": []
+}
