@@ -17,6 +17,7 @@ namespace Atuvu.Pooling
         ResetToOne,
     }
 
+    [CreateAssetMenu(fileName = "NewPool", menuName = "Object Pool", order = 150)]
     public sealed class Pool : ScriptableObject
     {
         sealed class Node
@@ -129,6 +130,7 @@ namespace Atuvu.Pooling
 
         Node PopInternal(Transform parent)
         {
+            EnsureInitialize();
             switch (m_OverflowMode)
             {
                 case OverflowMode.Expand:
@@ -149,6 +151,7 @@ namespace Atuvu.Pooling
 
         public void Release(GameObject instance)
         {
+            EnsureInitialize();
             if (!m_InUse.TryGetValue(instance, out Node node))
             {
                 Debug.Log($"Trying to release {instance.name} to the pool {name} but it wasn't created by the pool. Skipping release.", instance);
@@ -210,6 +213,11 @@ namespace Atuvu.Pooling
                 return PoolManager.settings.defaultScaleResetMode;
 
             return m_ScaleResetMode;
+        }
+
+        void EnsureInitialize()
+        {
+            Initialize();
         }
     }
 }

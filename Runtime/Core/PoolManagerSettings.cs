@@ -32,7 +32,7 @@ namespace Atuvu.Pooling
 
             return s_Instance;
         }
-
+        
         static readonly DefaultSettings k_DefaultSettings = new DefaultSettings();
         static PoolManagerSettings s_Instance;
 
@@ -47,6 +47,8 @@ namespace Atuvu.Pooling
         public bool disableObjectInPool { get { return m_DisableObjectInPool; } }
         public ScaleResetMode defaultScaleResetMode { get { return m_DefaultScaleResetMode; } }
         public IReadOnlyList<Pool> preloadedPool { get { return m_PreLoadedPool; } }
+        public static bool settingsFileExists { get { return s_Instance != null; } }
+
 
         void OnEnable()
         {
