@@ -1,0 +1,9 @@
+{
+    "name": "com.atuvu.pooling",
+    "displayName": "Pooling",
+    "version": "0.0.1",
+    "unity": "2018.4",
+    "description": "Basic pooling systems",
+    "keywords": ["Pooling", "Performance"],
+    "category": "Performance"
+}
