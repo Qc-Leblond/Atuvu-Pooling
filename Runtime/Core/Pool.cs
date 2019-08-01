@@ -20,7 +20,7 @@ namespace Atuvu.Pooling
     [CreateAssetMenu(fileName = "NewPool", menuName = "Object Pool", order = 150)]
     public sealed class Pool : ScriptableObject
     {
-        public static Pool Create(
+        public static Pool CreatePool(
             GameObject original, 
             int defaultSize,
             ScaleResetMode scaleResetMode = ScaleResetMode.Default,
@@ -83,6 +83,8 @@ namespace Atuvu.Pooling
 
         public int capacity { get { return m_Capacity;} }
         internal int availableCount { get { return m_Available.Count;} }
+        internal ScaleResetMode scaleResetMode { get { return m_ScaleResetMode;} }
+        internal OverflowMode overflowMode { get { return m_OverflowMode;} }
 
         public void Initialize()
         {
