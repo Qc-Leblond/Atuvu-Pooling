@@ -49,7 +49,7 @@ namespace Atuvu.Pooling
         }
 
         [SerializeField] GameObject m_Object = null;
-        [SerializeField, Min(0)] int m_DefaultSize = 10;
+        [SerializeField, Min(1)] int m_DefaultSize = 10;
         [SerializeField, Tooltip("What should happen if an object is requested and we are at max capacity")] OverflowMode m_OverflowMode = OverflowMode.Expand;
         [SerializeField] ScaleResetMode m_ScaleResetMode = ScaleResetMode.Default;
 
@@ -61,6 +61,9 @@ namespace Atuvu.Pooling
         bool m_Initialized;
         GameObject m_OriginalObject;
         Transform m_PoolRoot;
+        int m_Capacity;
+
+        public int capacity { get { return m_Capacity;} }
 
         public void Initialize()
         {
@@ -79,6 +82,7 @@ namespace Atuvu.Pooling
             m_InUse = new Dictionary<GameObject, Node>(m_DefaultSize);
             m_OriginalObject = m_Object; //Lock in original object so it's not affected by serialization change
             m_PoolRoot = PoolManager.CreatePoolRoot(name);
+            m_Capacity = 0;
 
             for (int i = 0; i < m_DefaultSize; ++i)
             {
@@ -182,6 +186,7 @@ namespace Atuvu.Pooling
             var node = new Node(instance);
             ResetScale(node);
             m_Available.Push(node);
+            ++m_Capacity;
         }
 
         void EnsureAvailability()
