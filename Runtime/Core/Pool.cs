@@ -20,6 +20,24 @@ namespace Atuvu.Pooling
     [CreateAssetMenu(fileName = "NewPool", menuName = "Object Pool", order = 150)]
     public sealed class Pool : ScriptableObject
     {
+        public static Pool Create(
+            GameObject original, 
+            int defaultSize,
+            ScaleResetMode scaleResetMode = ScaleResetMode.Default,
+            OverflowMode overflowMode = OverflowMode.Expand,
+            bool initialize = true)
+        {
+            var pool = CreateInstance<Pool>();
+            pool.m_DefaultSize = defaultSize;
+            pool.m_ScaleResetMode = scaleResetMode;
+            pool.m_OverflowMode = overflowMode;
+
+            if (initialize)
+                pool.Initialize();
+
+            return pool;
+        }
+
         sealed class Node
         {
             public GameObject gameObject { get; private set; }
@@ -71,14 +89,6 @@ namespace Atuvu.Pooling
             if (m_Initialized)
                 return;
 
-            m_Initialized = true;
-        }
-
-        void OnEnable()
-        {
-            if (!Application.isPlaying)
-                return;
-
             m_Available = new Stack<Node>(m_DefaultSize);
             m_InUse = new Dictionary<GameObject, Node>(m_DefaultSize);
             m_OriginalObject = m_Object; //Lock in original object so it's not affected by serialization change
@@ -86,6 +96,12 @@ namespace Atuvu.Pooling
             m_Capacity = 0;
 
             EnsureCapacity(m_DefaultSize);
+            m_Initialized = true;
+        }
+
+        void OnEnable()
+        {
+            m_Initialized = false;
         }
 
         public GameObject Pop()
