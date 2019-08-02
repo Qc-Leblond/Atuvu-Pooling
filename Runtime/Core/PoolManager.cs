@@ -1,6 +1,5 @@
 ﻿using System;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
 namespace Atuvu.Pooling
@@ -10,7 +9,8 @@ namespace Atuvu.Pooling
         [RuntimeInitializeOnLoadMethod]
         static void AutoInitialize()
         {
-            EnsureInitialize();
+            if (settings.autoInitializePoolsManager)
+                Initialize();
         }
 
         public static void Initialize(Transform targetRoot)
@@ -59,6 +59,9 @@ namespace Atuvu.Pooling
 
         static void EnsureInitialize()
         {
+            if (s_Instance != null)
+                return;
+
             if (settings.autoInitializePoolsManager)
                 Initialize();
             else

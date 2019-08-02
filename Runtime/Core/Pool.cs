@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Atuvu.Pooling
@@ -28,6 +29,7 @@ namespace Atuvu.Pooling
             bool initialize = true)
         {
             var pool = CreateInstance<Pool>();
+            pool.m_Object = original;
             pool.m_DefaultSize = defaultSize;
             pool.m_ScaleResetMode = scaleResetMode;
             pool.m_OverflowMode = overflowMode;
@@ -85,6 +87,7 @@ namespace Atuvu.Pooling
         internal int availableCount { get { return m_Available.Count;} }
         internal ScaleResetMode scaleResetMode { get { return m_ScaleResetMode;} }
         internal OverflowMode overflowMode { get { return m_OverflowMode;} }
+        internal GameObject original { get { return m_OriginalObject;} }
 
         public void Initialize()
         {
@@ -106,6 +109,28 @@ namespace Atuvu.Pooling
             m_Initialized = false;
         }
 
+        void OnDisable()
+        {
+            if (m_PoolRoot != null)
+            {
+                //TODO optimize
+                var objs = m_InUse.Keys.ToList();
+                for (int i = 0; i < objs.Count; ++i)
+                {
+                    var obj = objs[i];
+                    if (obj)
+                        continue;
+
+                    Release(obj);
+                }
+
+                Destroy(m_PoolRoot.gameObject);
+                m_Initialized = false;
+                m_Available = null;
+                m_InUse = null;
+            }
+        }
+
         public GameObject Pop()
         {
             return PopInternal(null)?.gameObject;
@@ -115,6 +140,23 @@ namespace Atuvu.Pooling
         public GameObject Pop(Vector3 position, Quaternion rotation) { return Pop(position, rotation, null); }
         public GameObject Pop(Vector3 position, Transform parent) { return Pop(position, Quaternion.identity, parent); }
         public GameObject Pop(Vector3 position, Quaternion rotation, Transform parent) { return PopInternal(position, rotation, parent)?.gameObject; }
+
+        public TComponent Pop<TComponent>() where TComponent : Component
+        {
+            var node = PopInternal(null);
+            if (node == null)
+                return null;
+
+            var component = node.gameObject.GetComponent<TComponent>();
+            if (component == null)
+            {
+                Debug.LogError($"Trying to Pop a pool object with a component of type {typeof(TComponent).Name} but the component isn't present on the root object.", node.gameObject);
+                Release(node.gameObject);
+                return null;
+            }
+
+            return component;
+        }
         public TComponent Pop<TComponent>(Vector3 position) where TComponent : Component { return Pop<TComponent>(position, Quaternion.identity); }
         public TComponent Pop<TComponent>(Vector3 position, Quaternion rotation) where TComponent : Component { return Pop<TComponent>(position, rotation, null); }
         public TComponent Pop<TComponent>(Vector3 position, Transform parent) where TComponent : Component { return Pop<TComponent>(position, Quaternion.identity, parent); }
@@ -139,16 +181,21 @@ namespace Atuvu.Pooling
 
         Node PopInternal(Vector3 position, Quaternion rotation, Transform parent)
         {
-            var node = PopInternal(parent);
+            var node = PopInternal(parent, false);
             if (node == null)
                 return null;
 
             node.transform.SetPositionAndRotation(position, rotation);
-            
+
+            foreach (var poolable in node.poolableComponents)
+            {
+                poolable.OnRelease();
+            }
+
             return node;
         }
 
-        Node PopInternal(Transform parent)
+        Node PopInternal(Transform parent, bool sendEvent = true)
         {
             EnsureInitialize();
             switch (m_OverflowMode)
@@ -163,18 +210,30 @@ namespace Atuvu.Pooling
                     break;
             }
             var node = m_Available.Pop();
+            m_InUse.Add(node.gameObject, node);
             var instance = node.gameObject;
             node.transform.parent = parent;
             instance.SetActive(true);
+
+            if (sendEvent)
+            {
+                foreach (var poolable in node.poolableComponents)
+                {
+                    poolable.OnPop();
+                }
+            }
             return node;
         }
 
         public void Release(GameObject instance)
         {
             EnsureInitialize();
+            if (instance == null)
+                return;
+
             if (!m_InUse.TryGetValue(instance, out Node node))
             {
-                Debug.Log($"Trying to release {instance.name} to the pool {name} but it wasn't created by the pool. Skipping release.", instance);
+                Debug.LogError($"Trying to release {instance.name} to the pool {name} but it wasn't created by the pool. Skipping release.", instance);
                 return;
             }
 
@@ -197,7 +256,8 @@ namespace Atuvu.Pooling
 
         public void EnsureCapacity(int capacity)
         {
-            for (int i = 0; i < capacity - m_Capacity; ++i)
+            var initialCapacity = m_Capacity;
+            for (int i = 0; i < capacity - initialCapacity; ++i)
             {
                 AddNewObject();
             }
