@@ -8,7 +8,7 @@ namespace Atuvu.Pooling
         bool autoInitializePoolsManager { get; }
         Vector3 poolsPosition { get; }
         bool disableObjectInPool { get; }
-        ScaleResetMode defaultScaleResetMode { get; }
+        ScaleResetMode defaultScaleResetMode { get; } 
         IReadOnlyList<Pool> preloadedPool { get; }
     }
 

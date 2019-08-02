@@ -11,12 +11,12 @@ namespace Atuvu.Pooling
         {
             if (!PoolManagerSettings.settingsFileExists)
             {
-                var assets = AssetDatabase.FindAssets("t:PoolManagerSettings");
+                var assetsGUID = AssetDatabase.FindAssets("t:PoolManagerSettings");
                 PoolManagerSettings settings = null;
-                foreach (var assetPath in assets)
+                foreach (var assetPath in assetsGUID) 
                 {
-                    settings = AssetDatabase.LoadAssetAtPath<PoolManagerSettings>(assetPath);
-                    if (settings != null)
+                    settings = AssetDatabase.LoadAssetAtPath<PoolManagerSettings>(AssetDatabase.GUIDToAssetPath(assetPath));
+                    if (settings != null) 
                         break;
                 }
 
@@ -28,8 +28,18 @@ namespace Atuvu.Pooling
                 }
 
                 var preLoadedAssets = PlayerSettings.GetPreloadedAssets().ToList();
-                preLoadedAssets.Add(settings);
-                PlayerSettings.SetPreloadedAssets(preLoadedAssets.ToArray());
+                foreach (var preLoadedAsset in preLoadedAssets)
+                {
+                    if (preLoadedAsset is PoolManagerSettings)
+                        return;
+                }
+
+                if (settings != null)
+                {
+                    preLoadedAssets.Add(settings);
+                    PlayerSettings.SetPreloadedAssets(preLoadedAssets.ToArray());
+                    AssetDatabase.SaveAssets();
+                }  
             }
         }
     }

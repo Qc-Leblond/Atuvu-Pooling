@@ -301,6 +301,12 @@ namespace Atuvu.Pooling.Tests
             return capacity;
         }
 
+        [Test]
+        public void PoolSettingsAssetExists()
+        {
+            Assert.IsTrue(PoolManagerSettings.settingsFileExists);
+        }
+
         public void DestroyPool_AllInUseAndAvailableObjectAreDestroyed()
         {
             var inUse = m_SizeOnePool.Pop();
