@@ -18,14 +18,14 @@ namespace Atuvu.Pooling
         {
             static readonly Pool[] k_EmptyPool = new Pool[0];
 
-            public bool autoInitializePoolsManager => false;
+            public bool autoInitializePoolsManager => true;
             public Vector3 poolsPosition => new Vector3(10000, 1000, 1000);
             public bool disableObjectInPool => true;
             public ScaleResetMode defaultScaleResetMode => ScaleResetMode.Disabled;
             public IReadOnlyList<Pool> preloadedPool => k_EmptyPool;
         }
 
-        public static IPoolManagerSettings Get()
+        public static IPoolManagerSettings Get() 
         {
             if (s_Instance == null)
                 return k_DefaultSettings;

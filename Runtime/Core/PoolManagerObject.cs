@@ -5,7 +5,7 @@ namespace Atuvu.Pooling
     [AddComponentMenu("")]
     internal sealed class PoolManagerObject : MonoBehaviour
     {
-        void Awake()
+        void Start()
         {
             for (var i = 0; i < PoolManager.settings.preloadedPool.Count; ++i)
             {

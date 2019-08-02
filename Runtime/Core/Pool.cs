@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Unity.Profiling;
 using UnityEngine;
@@ -94,6 +95,12 @@ namespace Atuvu.Pooling
         {
             if (m_Initialized)
                 return;
+
+            if (m_Object == null)
+            {
+                Debug.LogError("A pool cannot have a null object as template for pool object", this);
+                return;
+            }
 
             var profileMarker = new ProfilerMarker("Pool.Initialize");
             profileMarker.Begin(this);
