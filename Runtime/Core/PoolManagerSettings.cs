@@ -32,6 +32,11 @@ namespace Atuvu.Pooling
 
             return s_Instance;
         }
+
+        internal static PoolManagerSettings GetRAW()
+        {
+            return s_Instance;
+        }
         
         static readonly DefaultSettings k_DefaultSettings = new DefaultSettings();
         static PoolManagerSettings s_Instance;
@@ -42,11 +47,34 @@ namespace Atuvu.Pooling
         [SerializeField] ScaleResetMode m_DefaultScaleResetMode = k_DefaultSettings.defaultScaleResetMode;
         [SerializeField] Pool[] m_PreLoadedPool = new Pool[0];
 
-        public bool autoInitializePoolsManager { get { return m_AutoInitializedPoolsManager; } }
-        public Vector3 poolsPosition { get { return m_PoolsPosition; } }
-        public bool disableObjectInPool { get { return m_DisableObjectInPool; } }
-        public ScaleResetMode defaultScaleResetMode { get { return m_DefaultScaleResetMode; } }
-        public IReadOnlyList<Pool> preloadedPool { get { return m_PreLoadedPool; } }
+        public bool autoInitializePoolsManager
+        {
+            get { return m_AutoInitializedPoolsManager; }
+            set { m_AutoInitializedPoolsManager = value; }
+        }
+
+        public Vector3 poolsPosition
+        {
+            get { return m_PoolsPosition; }
+            set { m_PoolsPosition = value; }
+        }
+
+        public bool disableObjectInPool
+        {
+            get { return m_DisableObjectInPool; }
+            set { m_DisableObjectInPool = value; }
+        }
+
+        public ScaleResetMode defaultScaleResetMode
+        {
+            get { return m_DefaultScaleResetMode; }
+            set { m_DefaultScaleResetMode = value; }
+        }
+
+        public IReadOnlyList<Pool> preloadedPool
+        {
+            get { return m_PreLoadedPool; }
+        }
         public static bool settingsFileExists { get { return s_Instance != null; } }
 
 

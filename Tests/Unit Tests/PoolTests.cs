@@ -165,8 +165,12 @@ namespace Atuvu.Pooling.Tests
         [Test]
         public void Pop_ObjectIsActive()
         {
-            //TODO
-            Assert.Fail("TODO");
+            GameObject go = new GameObject();
+            go.SetActive(false);
+            var pool = Pool.CreatePool(go, 1, ScaleResetMode.Disabled, OverflowMode.Expand);
+            var obj = pool.Pop();
+
+            Assert.AreEqual(true, obj.activeSelf);
         }
 
         [Test]
@@ -219,10 +223,22 @@ namespace Atuvu.Pooling.Tests
         }
 
         [Test]
-        public void Release_ObjectIsDisabledDependingOnSettings()
+        [TestCase(false, Description = "disableObjectInPool = false", ExpectedResult = true)]
+        [TestCase(true, Description = "disableObjectInPool = true", ExpectedResult = false)]
+        public bool Release_ObjectIsDisabledDependingOnSettings(bool disableObjectInPool)
         {
-            //Set fake setting to right value TODO
-            Assert.Fail("TODO");
+            var obj = m_SizeOnePool.Pop();
+            Assume.That(obj.activeSelf, Is.True);
+
+            var settings = PoolManagerSettings.GetRAW();
+            var prevValue = settings.disableObjectInPool;
+            settings.disableObjectInPool = disableObjectInPool;
+            
+            m_SizeOnePool.Release(obj);
+
+            settings.disableObjectInPool = prevValue;
+
+            return obj.activeSelf;
         }
 
         [Test]
