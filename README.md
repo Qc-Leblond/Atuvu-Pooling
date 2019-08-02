@@ -22,8 +22,7 @@
 - In Packages/manifest.json, Add:
 ```
 "dependencies": {
-       "com.atuvu.pooling": "REPOSITORY_PATH",
-        ...other unit packages
+        ...packages
 },
 "testables": [
       "com.atuvu.pooling"
