@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Unity.Profiling;
 using UnityEngine;
 
 namespace Atuvu.Pooling
@@ -94,6 +95,9 @@ namespace Atuvu.Pooling
             if (m_Initialized)
                 return;
 
+            var profileMarker = new ProfilerMarker("Pool.Initialize");
+            profileMarker.Begin(this);
+
             m_Available = new Stack<Node>(m_DefaultSize);
             m_InUse = new Dictionary<GameObject, Node>(m_DefaultSize);
             m_OriginalObject = m_Object; //Lock in original object so it's not affected by serialization change
@@ -102,6 +106,8 @@ namespace Atuvu.Pooling
 
             EnsureCapacity(m_DefaultSize);
             m_Initialized = true;
+
+            profileMarker.End();
         }
 
         void OnEnable()
@@ -181,21 +187,43 @@ namespace Atuvu.Pooling
 
         Node PopInternal(Vector3 position, Quaternion rotation, Transform parent)
         {
-            var node = PopInternal(parent, false);
-            if (node == null)
-                return null;
+            var profileMarker = new ProfilerMarker("Pool.Pop");
+            profileMarker.Begin(this);
 
-            node.transform.SetPositionAndRotation(position, rotation);
-
-            foreach (var poolable in node.poolableComponents)
+            var node = PopInternalNoNotify(parent);
+            if (node != null)
             {
-                poolable.OnRelease();
+                node.transform.SetPositionAndRotation(position, rotation);
+
+                foreach (var poolable in node.poolableComponents)
+                {
+                    poolable.OnRelease();
+                }
             }
+
+            profileMarker.End();
 
             return node;
         }
 
-        Node PopInternal(Transform parent, bool sendEvent = true)
+        Node PopInternal(Transform parent)
+        {
+            var profileMarker = new ProfilerMarker("Pool.Pop");
+            profileMarker.Begin(this);
+            var node = PopInternalNoNotify(parent);
+            if (node != null)
+            {
+                foreach (var poolable in node.poolableComponents)
+                {
+                    poolable.OnPop();
+                }
+            }
+            profileMarker.End();
+
+            return node;
+        }
+
+        Node PopInternalNoNotify(Transform parent)
         {
             EnsureInitialize();
             switch (m_OverflowMode)
@@ -214,25 +242,20 @@ namespace Atuvu.Pooling
             var instance = node.gameObject;
             node.transform.parent = parent;
             instance.SetActive(true);
-
-            if (sendEvent)
-            {
-                foreach (var poolable in node.poolableComponents)
-                {
-                    poolable.OnPop();
-                }
-            }
             return node;
         }
 
         public void Release(GameObject instance)
         {
+            var profileMarker = new ProfilerMarker("Pool.Release");
+            profileMarker.Begin(this);
             EnsureInitialize();
             if (instance == null)
                 return;
 
             if (!m_InUse.TryGetValue(instance, out Node node))
             {
+                profileMarker.End();
                 Debug.LogError($"Trying to release {instance.name} to the pool {name} but it wasn't created by the pool. Skipping release.", instance);
                 return;
             }
@@ -241,7 +264,7 @@ namespace Atuvu.Pooling
             {
                 poolable.OnRelease();
             }
-
+            
             m_InUse.Remove(instance);
             m_Available.Push(node);
 
@@ -252,6 +275,7 @@ namespace Atuvu.Pooling
             node.transform.localPosition = Vector3.zero;
             node.transform.localRotation = Quaternion.identity;
             ResetScale(node);
+            profileMarker.End();
         }
 
         public void EnsureCapacity(int capacity)
@@ -265,12 +289,17 @@ namespace Atuvu.Pooling
 
         void AddNewObject()
         {
+            var profileMarker = new ProfilerMarker("Pool.AddNewObject");
+            profileMarker.Begin(this);
+
             var instance = Instantiate(m_OriginalObject, Vector3.zero, Quaternion.identity, m_PoolRoot);
             instance.SetActive(PoolManager.settings.disableObjectInPool);
             var node = new Node(instance);
             ResetScale(node);
             m_Available.Push(node);
             ++m_Capacity;
+
+            profileMarker.End();
         }
 
         void EnsureAvailability()
