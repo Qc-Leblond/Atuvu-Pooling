@@ -52,7 +52,7 @@ namespace Atuvu.Pooling
             public Node(GameObject go)
             {
                 gameObject = go;
-                gameObject.GetComponents(s_ComponentQueryBuffer);
+                gameObject.GetComponentsInChildren(s_ComponentQueryBuffer);
                 s_PoolableTempBuffer.Clear();
 
                 foreach (var component in s_ComponentQueryBuffer)
