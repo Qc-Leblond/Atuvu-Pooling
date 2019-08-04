@@ -308,14 +308,16 @@ namespace Atuvu.Pooling.Tests
             Assert.IsTrue(PoolManagerSettings.settingsFileExists);
         }
 
-        public void DestroyPool_AllInUseAndAvailableObjectAreDestroyed()
+        [UnityTest]
+        public IEnumerator DestroyPool_AllInUseAndAvailableObjectAreDestroyed()
         {
             var inUse = m_SizeOnePool.Pop();
 
             var insideObject = m_SizeOnePool.Pop();
             m_SizeOnePool.Release(insideObject);
             
-            Object.Destroy(m_SizeOnePool);
+            Object.DestroyImmediate(m_SizeOnePool);
+            yield return null;
 
             Assert.That(inUse == null);
             Assert.That(insideObject == null);

@@ -135,7 +135,7 @@ namespace Atuvu.Pooling
                 for (int i = 0; i < objs.Count; ++i)
                 {
                     var obj = objs[i];
-                    if (obj)
+                    if (obj == null)
                         continue;
 
                     Release(obj);
