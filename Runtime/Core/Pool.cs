@@ -75,6 +75,10 @@ namespace Atuvu.Pooling
         [SerializeField, Tooltip("What should happen if an object is requested and we are at max capacity")] OverflowMode m_OverflowMode = OverflowMode.Expand;
         [SerializeField] ScaleResetMode m_ScaleResetMode = ScaleResetMode.Default;
 
+        public event Action<GameObject> onPop;
+        public event Action<GameObject> onRelease;
+        public event Action<GameObject> onPoolExpanded;
+
         static readonly List<Component> s_ComponentQueryBuffer = new List<Component>(32);
         static readonly List<IPoolable> s_PoolableTempBuffer = new List<IPoolable>(32);
 
@@ -204,8 +208,10 @@ namespace Atuvu.Pooling
 
                 foreach (var poolable in node.poolableComponents)
                 {
-                    poolable.OnRelease();
+                    poolable.OnPop();
                 }
+
+                onPop?.Invoke(node.gameObject);
             }
 
             profileMarker.End();
@@ -224,6 +230,8 @@ namespace Atuvu.Pooling
                 {
                     poolable.OnPop();
                 }
+
+                onPop?.Invoke(node.gameObject);
             }
             profileMarker.End();
 
@@ -271,6 +279,8 @@ namespace Atuvu.Pooling
             {
                 poolable.OnRelease();
             }
+
+            onRelease?.Invoke(node.gameObject);
             
             m_InUse.Remove(instance);
             m_Available.Push(node);
@@ -305,6 +315,8 @@ namespace Atuvu.Pooling
             ResetScale(node);
             m_Available.Push(node);
             ++m_Capacity;
+
+            onPoolExpanded?.Invoke(instance);
 
             profileMarker.End();
         }

@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Collections;
+using System.Text.RegularExpressions;
 using UnityEngine;
 using NUnit.Framework;
 using UnityEngine.TestTools;
@@ -318,6 +319,43 @@ namespace Atuvu.Pooling.Tests
 
             Assert.That(inUse == null);
             Assert.That(insideObject == null);
+        }
+
+        [Test]
+        public void Pop_OnPopCalled()
+        {
+            GameObject goSent = null;
+            m_SizeOnePool.onPop += (go) => { goSent = go; };
+
+            GameObject goPop = m_SizeOnePool.Pop();
+
+            Assert.AreEqual(goPop, goSent);
+        }
+
+        [Test]
+        public void Release_OnReleaseCalled()
+        {
+            GameObject goSent = null;
+            m_SizeOnePool.onRelease += (go) => { goSent = go; };
+
+            GameObject goPop = m_SizeOnePool.Pop();
+            Assume.That(goPop != null);
+
+            m_SizeOnePool.Release(goPop);
+
+            Assert.AreEqual(goPop, goSent);
+        }
+
+        [Test]
+        public void AddNewObject_OnPoolExpandedCalled()
+        {
+            GameObject goSent = null;
+            m_SizeOnePool.Pop();
+            m_SizeOnePool.onPoolExpanded += (go) => { goSent = go; };
+
+            var goPop = m_SizeOnePool.Pop();
+
+            Assert.AreEqual(goPop, goSent);
         }
     }
 }
