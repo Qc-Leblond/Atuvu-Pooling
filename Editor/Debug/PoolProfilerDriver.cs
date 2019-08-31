@@ -42,6 +42,8 @@ namespace Atuvu.Pooling
 
         void OnEnable()
         {
+            EditorConnection.instance.Initialize();
+
             m_ConnectedDevices.Clear();
             m_ConnectedDevices.AddRange(EditorConnection.instance.ConnectedPlayers);
             EditorConnection.instance.RegisterConnection(OnDeviceConnected);
@@ -51,6 +53,10 @@ namespace Atuvu.Pooling
         void OnDeviceConnected(int id)
         {
             m_ConnectedDevices.Add(new ConnectedPlayer(id));
+
+            //Editor Connection becomes invalid when all connected devices are disconnected
+            if (m_ConnectedDevices.Count == 1)
+                EditorConnection.instance.Initialize();
         }
 
         void OnDeviceDisconnected(int id)
