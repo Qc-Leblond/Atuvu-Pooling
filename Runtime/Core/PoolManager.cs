@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -6,11 +7,28 @@ namespace Atuvu.Pooling
 {
     public static class PoolManager
     {
+        static readonly List<Pool> s_Pools = new List<Pool>();
+
         [RuntimeInitializeOnLoadMethod]
         static void AutoInitialize()
         {
             if (settings.autoInitializePoolsManager)
                 Initialize();
+        }
+
+        internal static IReadOnlyList<Pool> poolsInternal => s_Pools;
+
+        public static Pool[] GetPools()
+        {
+            return s_Pools.ToArray();
+        }
+
+        public static void GetPools(List<Pool> results)
+        {
+            foreach (var pool in s_Pools)
+            {
+                results.Add(pool);
+            }
         }
 
         public static void Initialize(Transform targetRoot)
@@ -55,6 +73,16 @@ namespace Atuvu.Pooling
             root.localPosition = Vector3.zero;
             root.localRotation = Quaternion.identity;
             return root;
+        }
+
+        internal static void RegisterPool(Pool pool)
+        {
+            s_Pools.Add(pool);
+        }
+
+        internal static void UnregisterPool(Pool pool)
+        {
+            s_Pools.Remove(pool);
         }
 
         static void EnsureInitialize()

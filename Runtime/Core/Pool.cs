@@ -24,6 +24,7 @@ namespace Atuvu.Pooling
     public sealed class Pool : ScriptableObject
     {
         public static Pool CreatePool(
+            string name,
             GameObject original, 
             int defaultSize,
             ScaleResetMode scaleResetMode = ScaleResetMode.Default,
@@ -31,6 +32,7 @@ namespace Atuvu.Pooling
             bool initialize = true)
         {
             var pool = CreateInstance<Pool>();
+            pool.name = name;
             pool.m_Object = original;
             pool.m_DefaultSize = defaultSize;
             pool.m_ScaleResetMode = scaleResetMode;
@@ -74,6 +76,7 @@ namespace Atuvu.Pooling
         [SerializeField, Min(1)] int m_DefaultSize = 10;
         [SerializeField, Tooltip("What should happen if an object is requested and we are at max capacity")] OverflowMode m_OverflowMode = OverflowMode.Expand;
         [SerializeField] ScaleResetMode m_ScaleResetMode = ScaleResetMode.Default;
+        Guid m_Id;
 
         public event Action<GameObject> onPop;
         public event Action<GameObject> onRelease;
@@ -87,13 +90,16 @@ namespace Atuvu.Pooling
         bool m_Initialized;
         GameObject m_OriginalObject;
         Transform m_PoolRoot;
+        int m_OriginalCapacity;
         int m_Capacity;
 
+        internal int originalCapacity { get { return m_OriginalCapacity; } }
         public int capacity { get { return m_Capacity;} }
         internal int availableCount { get { return m_Available.Count;} }
         internal ScaleResetMode scaleResetMode { get { return m_ScaleResetMode;} }
         internal OverflowMode overflowMode { get { return m_OverflowMode;} }
         internal GameObject original { get { return m_OriginalObject;} }
+        internal Guid id { get { return m_Id; } }
 
         public void Initialize()
         {
@@ -108,15 +114,20 @@ namespace Atuvu.Pooling
 
             var profileMarker = new ProfilerMarker("Pool.Initialize");
             profileMarker.Begin(this);
-
+            
+            m_Id = Guid.NewGuid();
             m_Available = new Stack<Node>(m_DefaultSize);
             m_InUse = new Dictionary<GameObject, Node>(m_DefaultSize);
             m_OriginalObject = m_Object; //Lock in original object so it's not affected by serialization change
             m_PoolRoot = PoolManager.CreatePoolRoot(name);
             m_Capacity = 0;
+            m_OriginalCapacity = m_DefaultSize;
 
             EnsureCapacity(m_DefaultSize);
             m_Initialized = true;
+
+            PoolManager.RegisterPool(this);
+            PoolProfiler.RecordPoolInitialized(this);
 
             profileMarker.End();
         }
@@ -130,6 +141,8 @@ namespace Atuvu.Pooling
         {
             if (m_PoolRoot != null)
             {
+                PoolManager.UnregisterPool(this);
+
                 //TODO optimize
                 var objs = m_InUse.Keys.ToList();
                 for (int i = 0; i < objs.Count; ++i)
@@ -297,11 +310,16 @@ namespace Atuvu.Pooling
 
         public void EnsureCapacity(int capacity)
         {
+            if (capacity == m_Capacity)
+                return;
+
             var initialCapacity = m_Capacity;
             for (int i = 0; i < capacity - initialCapacity; ++i)
             {
                 AddNewObject();
             }
+
+            PoolProfiler.RecordPoolResize(this);
         }
 
         void AddNewObject()

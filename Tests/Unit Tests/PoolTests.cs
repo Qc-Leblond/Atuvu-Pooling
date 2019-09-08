@@ -39,7 +39,7 @@ namespace Atuvu.Pooling.Tests
             m_TestObject = new GameObject();
             m_TestObject.AddComponent<TestComponent>();
 
-            m_SizeOnePool = Pool.CreatePool(m_TestObject, 1, ScaleResetMode.Disabled, OverflowMode.Expand);
+            m_SizeOnePool = Pool.CreatePool("Test", m_TestObject, 1, ScaleResetMode.Disabled, OverflowMode.Expand);
         }
 
         [TearDown]
@@ -53,7 +53,7 @@ namespace Atuvu.Pooling.Tests
         public void CreatePool_RightValues()
         {
 
-            var pool = Pool.CreatePool(m_TestObject, 5, ScaleResetMode.Disabled, OverflowMode.DontExpand);
+            var pool = Pool.CreatePool("Test", m_TestObject, 5, ScaleResetMode.Disabled, OverflowMode.DontExpand);
 
             Assert.AreEqual(m_TestObject, pool.original);
             Assert.AreEqual(5, pool.capacity);
@@ -66,7 +66,7 @@ namespace Atuvu.Pooling.Tests
         [Test]
         public void UninitializedPool_Initialize_PoolIsInitialized()
         {
-            var pool = Pool.CreatePool(m_TestObject, 5, initialize: false);
+            var pool = Pool.CreatePool("Test", m_TestObject, 5, initialize: false);
             AssumeNotInitializeValid(pool);
             pool.Initialize();
             AssertInitializedProperly(pool);
@@ -77,7 +77,7 @@ namespace Atuvu.Pooling.Tests
         [Test]
         public void UninitializedPool_Pop_PoolIsInitialized()
         {
-            var pool = Pool.CreatePool(m_TestObject, 5, initialize: false);
+            var pool = Pool.CreatePool("Test", m_TestObject, 5, initialize: false);
 
             AssumeNotInitializeValid(pool);
             pool.Pop();
@@ -89,7 +89,7 @@ namespace Atuvu.Pooling.Tests
         [Test]
         public void UninitializedPool_Release_PoolIsInitialized()
         {
-            var pool = Pool.CreatePool(m_TestObject, 5, initialize: false);
+            var pool = Pool.CreatePool("Test", m_TestObject, 5, initialize: false);
 
             AssumeNotInitializeValid(pool);
             pool.Release(null); 
@@ -135,7 +135,7 @@ namespace Atuvu.Pooling.Tests
         [Test]
         public void Pop_OverflowModeDontExpand_NoElementsRemain_ReturnNull()
         {
-            var pool = Pool.CreatePool(m_TestObject, 1, ScaleResetMode.Disabled, OverflowMode.DontExpand);
+            var pool = Pool.CreatePool("Test", m_TestObject, 1, ScaleResetMode.Disabled, OverflowMode.DontExpand);
 
             pool.Pop();
             Assume.That(pool.availableCount, Is.EqualTo(0));
@@ -168,7 +168,7 @@ namespace Atuvu.Pooling.Tests
         {
             GameObject go = new GameObject();
             go.SetActive(false);
-            var pool = Pool.CreatePool(go, 1, ScaleResetMode.Disabled, OverflowMode.Expand);
+            var pool = Pool.CreatePool("Test", go, 1, ScaleResetMode.Disabled, OverflowMode.Expand);
             var obj = pool.Pop();
 
             Assert.AreEqual(true, obj.activeSelf);
@@ -251,7 +251,7 @@ namespace Atuvu.Pooling.Tests
             Vector3 initScale = Vector3.one * initScaleValue;
             m_TestObject.transform.localScale = initScale;
 
-            var pool = Pool.CreatePool(m_TestObject, 1, mode, OverflowMode.Expand);
+            var pool = Pool.CreatePool("Test", m_TestObject, 1, mode, OverflowMode.Expand);
             var obj = pool.Pop();
             obj.transform.localScale = Vector3.one * setScaleValue;
 
@@ -291,7 +291,7 @@ namespace Atuvu.Pooling.Tests
         [TestCase(10, 15, Description = "Ensure More - Resize to Ensure", ExpectedResult = 15)]
         public int EnsureCapacity_InitSize_SizeEnsured_SizeResult(int initSize, int sizeEnsured)
         {
-            var pool = Pool.CreatePool(m_TestObject, initSize, ScaleResetMode.Disabled, OverflowMode.Expand);
+            var pool = Pool.CreatePool("Test", m_TestObject, initSize, ScaleResetMode.Disabled, OverflowMode.Expand);
             Assume.That(pool.capacity, Is.EqualTo(initSize));
 
             pool.EnsureCapacity(sizeEnsured);
