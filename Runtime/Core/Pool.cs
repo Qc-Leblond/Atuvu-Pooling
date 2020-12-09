@@ -310,7 +310,7 @@ namespace Atuvu.Pooling
             profileMarker.Begin(this);
 
             var instance = Instantiate(m_OriginalObject, Vector3.zero, Quaternion.identity, m_PoolRoot);
-            instance.SetActive(PoolManager.settings.disableObjectInPool);
+            instance.SetActive(!PoolManager.settings.disableObjectInPool);
             var node = new Node(instance);
             ResetScale(node);
             m_Available.Push(node);
